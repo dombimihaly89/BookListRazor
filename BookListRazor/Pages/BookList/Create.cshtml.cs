@@ -19,23 +19,43 @@ namespace BookListRazor.Pages.BookList
 
         [BindProperty]
         public Book Book { get; set; }
-        public void OnGet()
+        public async Task OnGet(int id)
         {
-
+            Book = await _db.Book.FindAsync(id);
         }
 
         public async Task<IActionResult> OnPost()
         {
-            if (ModelState.IsValid)
+            if (Book.Id == 0)
             {
-                await _db.Book.AddAsync(Book);
-                await _db.SaveChangesAsync();
-                return RedirectToPage("Index");
+                if (ModelState.IsValid)
+                {
+                    await _db.Book.AddAsync(Book);
+                    await _db.SaveChangesAsync();
+                    return RedirectToPage("Index");
+                }
+                else
+                {
+                    return Page();
+                }
             }
             else
             {
-                return Page();
+                if (ModelState.IsValid)
+                {
+                    var BookToUpdate = await _db.Book.FindAsync(Book.Id);
+                    BookToUpdate.Name = Book.Name;
+                    BookToUpdate.Author = Book.Author;
+                    BookToUpdate.ISBN = Book.ISBN;
+                    await _db.SaveChangesAsync();
+                    return RedirectToPage("Index");
+                }
+                else
+                {
+                    return Page();
+                }
             }
+            
 
         }
     }
