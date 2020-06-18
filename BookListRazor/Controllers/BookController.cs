@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BookListRazor.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookListRazor.Controllers
 {
@@ -19,9 +20,21 @@ namespace BookListRazor.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            return Json(new { data = _db.Book.ToList() });
+            return Json(new { data = await _db.Book.ToListAsync() });
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var BookFromDb = await _db.Book.FirstOrDefaultAsync(book => book.Id == id);
+            if (BookFromDb == null)
+            {
+                return Json(new { success = false, message = "Error while Deleting" });
+            }
+            _db.Book.Remove(BookFromDb);
+            await _db.SaveChangesAsync();
+            return Json(new { success = true, message = "Delete successful" });
         }
     }
 }
